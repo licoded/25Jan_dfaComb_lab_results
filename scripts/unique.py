@@ -2,6 +2,20 @@ import sys
 import csv
 import os
 
+def print_usages():
+    print("Usage: python3 unique.py [options] file1 file2 ...")
+    print("Options:")
+    print("\t--filter=<csv_file>,0: print unique results not in <csv_file>")
+    print("\t--filter=<csv_file>,1: print unique results in <csv_file>")
+    sys.exit(0)
+
+
+def assrt_file_exist(file):
+    if (not os.path.isfile(file)):
+        print(f"File {file} does not exist!")
+        sys.exit(1)
+
+
 def csv_to_list_of_dict(csv_file):
     result = []
     
@@ -12,6 +26,7 @@ def csv_to_list_of_dict(csv_file):
             result.append(modified_row)
     
     return result
+
 
 def parseFilename_inner(filename):
     # 定义关键字到结果的映射
@@ -25,6 +40,7 @@ def parseFilename_inner(filename):
         "tople_m1e1": "tople_m1e1",
         "tople": "tople",
         "synthesis": "on-the-fly_new",
+        "on-the-fly_new": "on-the-fly_new",
         "nowholeDFA": "nowholeDFA",
         "lisa": "lisa",
         "nike": "nike",
@@ -40,10 +56,12 @@ def parseFilename_inner(filename):
     # 默认返回文件名
     return filename
 
+
 def parseFilename(filename):
     foldername = filename.split('/')[-2]
     last_hashId = foldername.split('_')[-1]
     return parseFilename_inner(filename) + '_' + last_hashId
+
 
 if len(sys.argv) < 3:
     print("Please input two or more files!")
@@ -57,11 +75,7 @@ def getKey(item):
     return item['Folder'] + ', ' + item['Filename']
 for arg_str in sys.argv[1:]:
     if (arg_str == "-h" or arg_str == "--help"):
-        print("Usage: python3 unique.py [options] file1 file2 ...")
-        print("Options:")
-        print("\t--filter=<csv_file>,0: print unique results not in <csv_file>")
-        print("\t--filter=<csv_file>,1: print unique results in <csv_file>")
-        sys.exit(0)
+        print_usages()
     if (arg_str.startswith("--filter")):
         if arg_str.endswith(",0"):
             filter_idx = 0
@@ -69,16 +83,15 @@ for arg_str in sys.argv[1:]:
             filter_idx = 1
         else:
             print("Invalid filter index!")
-            sys.exit(1)
+            print_usages()
         filter_csv = arg_str.split("=")[1].split(",")[0]
+        assrt_file_exist(filter_csv)
         filter_data = csv_to_list_of_dict(filter_csv)
         for filter_item in filter_data:
             filter_key_list.append(getKey(filter_item))
         continue
     file = arg_str
-    if (not os.path.isfile(file)):
-        print(f"File {file} does not exist!")
-        sys.exit(1)
+    assrt_file_exist(file)
     files.append(file)
 data_arr = []
 
